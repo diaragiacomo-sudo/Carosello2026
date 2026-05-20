@@ -63,6 +63,7 @@ export default function App() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
   // Export Modal statuses
   const [isExporting, setIsExporting] = useState(false);
@@ -317,16 +318,134 @@ export default function App() {
     setActiveSlideIndex(targetIndex);
   };
 
-  // Handle uploaded background image or video
+  // Handle uploaded background image or video (supports multiple file selection)
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const fileUrl = URL.createObjectURL(file);
-    const mType = file.type.startsWith("video") ? "video" : "image";
+    const fileList = Array.from(files) as File[];
 
-    handleUpdateSlideField(activeSlide.id, "mediaUrl", fileUrl);
-    handleUpdateSlideField(activeSlide.id, "mediaType", mType);
+    setSlides((prev) => {
+      const copy = [...prev];
+      
+      fileList.forEach((file, index) => {
+        const fileUrl = URL.createObjectURL(file);
+        const mType = file.type.startsWith("video") ? "video" : "image";
+
+        if (index === 0) {
+          // Replace or set the media on the active slide
+          if (copy[activeSlideIndex]) {
+            copy[activeSlideIndex] = {
+              ...copy[activeSlideIndex],
+              mediaUrl: fileUrl,
+              mediaType: mType,
+              sticker: mType === "video" ? "🎥" : "🖼️",
+            };
+          }
+        } else {
+          // Create new slides right after the active slide index
+          const newSlideId = `slide-${Date.now()}-${index}`;
+          const newSlide: CarouselSlide = {
+            id: newSlideId,
+            title: `Slide caricata ${index + 1}`,
+            body: "Titolo e descrizione personalizzabili da qui in ogni momento.",
+            subtitle: "Dettaglio dell'immagine 📸",
+            background: "#1e1b4b",
+            textColor: "#f8fafc",
+            sticker: mType === "video" ? "🎥" : "🖼️",
+            duration: 5,
+            fontFamily: "sans",
+            animType: "fade-up",
+            filter: "none",
+            specialEffect: "none",
+            mediaUrl: fileUrl,
+            mediaType: mType,
+          };
+          // Insert at activeSlideIndex + index
+          copy.splice(activeSlideIndex + index, 0, newSlide);
+        }
+      });
+
+      return copy;
+    });
+
+    if (fileList.length > 1) {
+      setAiMessage(`Caricati con successo ${fileList.length} file multimediali! Sono stati inseriti nelle slide.`);
+    }
+  };
+
+  // Drag and Drop event handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = (Array.from(files) as File[]).filter((file) =>
+      file.type.startsWith("image/") || file.type.startsWith("video/")
+    );
+
+    if (fileList.length === 0) return;
+
+    setSlides((prev) => {
+      const copy = [...prev];
+
+      fileList.forEach((file, index) => {
+        const fileUrl = URL.createObjectURL(file);
+        const mType = file.type.startsWith("video") ? "video" : "image";
+
+        if (index === 0) {
+          // Replace or set the media on the active slide
+          if (copy[activeSlideIndex]) {
+            copy[activeSlideIndex] = {
+              ...copy[activeSlideIndex],
+              mediaUrl: fileUrl,
+              mediaType: mType,
+              sticker: mType === "video" ? "🎥" : "🖼️",
+            };
+          }
+        } else {
+          // Create new slides right after the active slide index
+          const newSlideId = `slide-${Date.now()}-${index}`;
+          const newSlide: CarouselSlide = {
+            id: newSlideId,
+            title: `Slide caricata ${index + 1}`,
+            body: "Titolo e descrizione personalizzabili da qui in ogni momento.",
+            subtitle: "Dettaglio dell'immagine 📸",
+            background: "#1e1b4b",
+            textColor: "#f8fafc",
+            sticker: mType === "video" ? "🎥" : "🖼️",
+            duration: 5,
+            fontFamily: "sans",
+            animType: "fade-up",
+            filter: "none",
+            specialEffect: "none",
+            mediaUrl: fileUrl,
+            mediaType: mType,
+          };
+          // Insert at activeSlideIndex + index
+          copy.splice(activeSlideIndex + index, 0, newSlide);
+        }
+      });
+
+      return copy;
+    });
+
+    if (fileList.length > 1) {
+      setAiMessage(`Caricati con successo ${fileList.length} file multimediali trascinati! Sono stati inseriti nelle slide.`);
+    } else if (fileList.length === 1) {
+      setAiMessage(`Caricato con successo 1 file multimediale trascinato!`);
+    }
   };
 
   // Audio mic operations
@@ -470,12 +589,27 @@ export default function App() {
               </label>
               
               <div className="flex gap-2.5">
-                <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl cursor-pointer text-xs text-gray-700 transition-all font-bold shadow-xs">
-                  <ImageIcon className="w-4 h-4 text-emerald-500" />
-                  Carica Foto / Video
+                <label
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-3 border rounded-xl cursor-pointer text-xs transition-all font-bold shadow-xs ${
+                    isDragging
+                      ? "bg-rose-50 border-dashed border-rose-400 text-rose-600 scale-[1.01] ring-2 ring-rose-200"
+                      : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+                  }`}
+                >
+                  <ImageIcon className={`w-4 h-4 shrink-0 transition-all ${isDragging ? "text-rose-500 scale-125 animate-bounce" : "text-emerald-500"}`} />
+                  <div className="text-left select-none">
+                    <span className="block text-[11px] leading-tight font-bold">{isDragging ? "Rilascia i file qui! 📥" : "Carica o Trascina Foto/Video"}</span>
+                    {!isDragging && (
+                      <span className="block text-[8.5px] font-medium text-gray-400 mt-0.5 leading-none">Supporta selezione multipla</span>
+                    )}
+                  </div>
                   <input
                     type="file"
                     accept="image/*,video/*"
+                    multiple
                     onChange={handleMediaUpload}
                     className="hidden"
                   />
