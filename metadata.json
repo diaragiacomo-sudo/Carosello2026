@@ -1,0 +1,6 @@
+{
+  "name": "Social Media Carousel Builder",
+  "description": "Crea splendidi caroselli di immagini e video per i social media con musica, testi, transizioni, sticker, filtri e registrazione voce fuori campo.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Vintage / Cinematic custom adjustments */
+  .vignette-overlay {
+    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+  }
+  
+  .analog-scanlines {
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%, 
+      rgba(0, 0, 0, 0.25) 50%
+    ), linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.06),
+      rgba(0, 255, 0, 0.02),
+      rgba(0, 0, 255, 0.06)
+    );
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+  }
+
+  /* Glitch effect style keyframes */
+  @keyframes cyber-glitch {
+    0% {
+      clip-path: inset(40% 0 61% 0);
+      transform: skew(0.3deg);
+    }
+    20% {
+      clip-path: inset(92% 0 1% 0);
+      transform: skew(-0.5deg);
+    }
+    40% {
+      clip-path: inset(5% 0 80% 0);
+      transform: skew(0.8deg);
+    }
+    60% {
+      clip-path: inset(80% 0 5% 0);
+      transform: skew(-0.4deg);
+    }
+    80% {
+      clip-path: inset(2% 0 92% 0);
+      transform: skew(0.6deg);
+    }
+    100% {
+      clip-path: inset(40% 0 61% 0);
+      transform: skew(0deg);
+    }
+  }
+
+  .glitch-flash {
+    animation: cyber-glitch 1s linear infinite alternate-reverse;
+  }
+
+  /* Retro Sci-fi Matrix grid background */
+  .retro-cyan-grid {
+    background-size: 30px 30px;
+    background-image: 
+      linear-gradient(to right, rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+  }
+
+  /* Custom fonts setup helper rules */
+  .font-playfair {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
